@@ -136,13 +136,13 @@ class Toolbox:
             result = await asyncio.to_thread(self.runner.execute, guarded.sql)
         except QueryTimeoutError as exc:
             return ToolOutcome(
-                content=f"{exc}. Simplify the query.", is_error=True, sql=guarded.sql
+                content=f"{exc}. Simplify the query.", is_error=True, sql=guarded.pretty
             )
         except QueryExecutionError as exc:
-            return ToolOutcome(content=f"Database error: {exc}", is_error=True, sql=guarded.sql)
+            return ToolOutcome(content=f"Database error: {exc}", is_error=True, sql=guarded.pretty)
         if guarded.limit_applied and result.row_count >= self.guard.max_rows:
             result.truncated = True
-        return ToolOutcome(content=self._format_result(result), sql=guarded.sql, result=result)
+        return ToolOutcome(content=self._format_result(result), sql=guarded.pretty, result=result)
 
     def _format_result(self, result: QueryResult) -> str:
         shown = result.rows[: self.preview_rows]

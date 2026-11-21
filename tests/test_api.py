@@ -93,7 +93,7 @@ def test_ask_streams_steps_and_persists_the_run(
     detail = client.get(f"/runs/{run_id}").json()
     assert detail["status"] == "succeeded"
     assert detail["question"] == "Orders by channel?"
-    assert detail["sql"].startswith("SELECT channel")
+    assert detail["sql"].split()[:2] == ["SELECT", "channel,"]
     assert detail["rows"] == result["rows"]
     assert [s["name"] for s in detail["steps"]] == [
         "list_tables",

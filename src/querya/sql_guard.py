@@ -50,6 +50,7 @@ class UnsafeSQLError(ValueError):
 @dataclass(frozen=True, slots=True)
 class GuardedSQL:
     sql: str
+    pretty: str
     tables: frozenset[str]
     limit_applied: bool
 
@@ -103,6 +104,7 @@ class SQLGuard:
         root, limit_applied = self._enforce_limit(root)
         return GuardedSQL(
             sql=root.sql(dialect=self.dialect, comments=False),
+            pretty=root.sql(dialect=self.dialect, comments=False, pretty=True),
             tables=tables,
             limit_applied=limit_applied,
         )

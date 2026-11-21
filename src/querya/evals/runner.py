@@ -98,7 +98,11 @@ class EvalReport(BaseModel):
         for c in self.cases:
             note = (c.error or "").replace("|", "/")[:80]
             if not note and not c.passed:
-                note = f"rows {c.actual_rows} vs expected {c.expected_rows}"
+                note = (
+                    "values differ"
+                    if c.actual_rows == c.expected_rows
+                    else f"{c.actual_rows} rows, expected {c.expected_rows}"
+                )
             lines.append(
                 f"| {c.id} | {'yes' if c.passed else 'no'} | {c.llm_calls} | {c.sql_attempts} "
                 f"| {c.latency_ms / 1000:.1f} | {note} |"
