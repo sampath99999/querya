@@ -2,7 +2,7 @@ import logging
 import operator
 import time
 from collections.abc import AsyncIterator
-from typing import Annotated, Any, Literal, TypedDict
+from typing import Annotated, Any, TypedDict
 
 from langgraph.graph import END, START, StateGraph
 
@@ -250,7 +250,7 @@ class SQLAgent:
         )
         return {"error": error, "steps": [step]}
 
-    def _route_after_model(self, state: AgentState) -> Literal["tools", "model", "fail", "__end__"]:
+    def _route_after_model(self, state: AgentState) -> str:
         if state.get("error"):
             return "fail"
         if state.get("answer"):
@@ -260,7 +260,7 @@ class SQLAgent:
             return "tools"
         return "model"
 
-    def _route_after_tools(self, state: AgentState) -> Literal["model", "fail", "__end__"]:
+    def _route_after_tools(self, state: AgentState) -> str:
         if state.get("answer"):
             return END
         if state.get("sql_errors", 0) > self.max_sql_retries:

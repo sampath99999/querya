@@ -43,23 +43,25 @@ class LangfuseExporter:
             status_message=result.error,
         )
         for step in result.steps:
-            is_llm = step.kind == "llm"
-            usage = None
-            if is_llm and step.input_tokens is not None:
-                usage = {"input": step.input_tokens, "output": step.output_tokens or 0}
             output = step.output
             if step.text is not None:
                 output = {"text": step.text, **_as_dict(step.output)}
-            child = root.start_observation(
-                name=step.name,
-                as_type="generation" if is_llm else "tool",
-                input=step.input,
-                output=output,
-                metadata={"index": step.index, "sql": step.sql, "latency_ms": step.latency_ms},
-                model=model if is_llm else None,
-                usage_details=usage,
-                level="ERROR" if step.status == "error" else "DEFAULT",
-            )
+            common: dict[str, Any] = {
+                "name": step.name,
+                "input": step.input,
+                "output": output,
+                "metadata": {"index": step.index, "sql": step.sql, "latency_ms": step.latency_ms},
+                "level": "ERROR" if step.status == "error" else "DEFAULT",
+            }
+            if step.kind == "llm":
+                usage = None
+                if step.input_tokens is not None:
+                    usage = {"input": step.input_tokens, "output": step.output_tokens or 0}
+                child = root.start_observation(
+                    as_type="generation", model=model, usage_details=usage, **common
+                )
+            else:
+                child = root.start_observation(as_type="tool", **common)
             child.end()
         root.end()
         self._client.flush()

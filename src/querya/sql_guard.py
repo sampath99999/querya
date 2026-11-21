@@ -101,15 +101,15 @@ class SQLGuard:
                 self._check_function(node)
 
         tables = self._check_tables(root)
-        root, limit_applied = self._enforce_limit(root)
+        query, limit_applied = self._enforce_limit(root)
         return GuardedSQL(
-            sql=root.sql(dialect=self.dialect, comments=False),
-            pretty=root.sql(dialect=self.dialect, comments=False, pretty=True),
+            sql=query.sql(dialect=self.dialect, comments=False),
+            pretty=query.sql(dialect=self.dialect, comments=False, pretty=True),
             tables=tables,
             limit_applied=limit_applied,
         )
 
-    def _parse_single(self, sql: str) -> exp.Expression:
+    def _parse_single(self, sql: str) -> exp.Expr:
         try:
             statements = sqlglot.parse(sql, read=self.dialect, error_level=ErrorLevel.RAISE)
         except (ParseError, TokenError) as exc:
@@ -129,7 +129,7 @@ class SQLGuard:
             if name in DENIED_FUNCTIONS or name.startswith(DENIED_FUNCTION_PREFIXES):
                 raise UnsafeSQLError(f"Function {name}() is not allowed")
 
-    def _check_tables(self, root: exp.Expression) -> frozenset[str]:
+    def _check_tables(self, root: exp.Expr) -> frozenset[str]:
         cte_names = {cte.alias_or_name.lower() for cte in root.find_all(exp.CTE)}
         seen: set[str] = set()
         for table in root.find_all(exp.Table):
