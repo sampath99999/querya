@@ -35,7 +35,7 @@ class QueryResult(BaseModel):
     elapsed_ms: float
 
 
-def _readonly_url(database_url: str) -> tuple[URL, dict[str, Any]]:
+def readonly_url(database_url: str) -> tuple[URL, dict[str, Any]]:
     url = make_url(database_url)
     backend = url.get_backend_name()
     if backend == "sqlite":
@@ -53,7 +53,7 @@ def _readonly_url(database_url: str) -> tuple[URL, dict[str, Any]]:
 
 
 def create_readonly_engine(database_url: str) -> Engine:
-    url, connect_args = _readonly_url(database_url)
+    url, connect_args = readonly_url(database_url)
     engine = create_engine(url, connect_args=connect_args, pool_pre_ping=True)
     if engine.dialect.name == "sqlite":
 

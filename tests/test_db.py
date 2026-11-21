@@ -12,6 +12,7 @@ from querya.db import (
     UnknownTableError,
     create_readonly_engine,
 )
+from querya.db.engine import readonly_url
 
 
 def test_connection_is_read_only_even_without_the_guard(engine: Engine) -> None:
@@ -85,3 +86,15 @@ def test_catalog_describes_tables(catalog: SchemaCatalog) -> None:
     assert len(orders.sample_rows) == 3
     with pytest.raises(UnknownTableError, match="Available tables"):
         catalog.describe("sales")
+
+
+def test_postgres_connections_are_read_only_by_default() -> None:
+    url, connect_args = readonly_url("postgresql+psycopg://querya_ro:pw@localhost:5432/retail")
+    assert url.drivername == "postgresql+psycopg"
+    assert "default_transaction_read_only=on" in connect_args["options"]
+
+
+def test_sqlite_url_uses_read_only_uri(db_url: str) -> None:
+    url, _ = readonly_url(db_url)
+    assert url.query == {"mode": "ro", "uri": "true"}
+    assert str(url.database).startswith("file:")
