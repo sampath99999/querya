@@ -1,0 +1,6 @@
+FROM qwen2.5-coder:3b
+
+# Ollama defaults to a large context window, which pushes part of the model onto the CPU
+# on a 4 GB GPU. 8k tokens is plenty for this agent and keeps the model on the GPU.
+PARAMETER num_ctx 8192
+PARAMETER temperature 0
