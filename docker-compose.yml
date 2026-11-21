@@ -1,0 +1,60 @@
+# Postgres-backed setup: an admin role loads the sample data, the API reads it through a
+# separate read-only role. The LLM defaults to Ollama running on the host.
+
+x-db-env: &db-env
+  POSTGRES_DB: retail
+  POSTGRES_USER: querya_admin
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+  QUERYA_RO_PASSWORD: ${QUERYA_RO_PASSWORD:?set QUERYA_RO_PASSWORD in .env}
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment: *db-env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U querya_admin -d retail"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    ports:
+      - "127.0.0.1:5433:5432"
+
+  seed:
+    build: .
+    command: ["querya", "seed"]
+    environment:
+      QUERYA_DATABASE_URL: postgresql+psycopg://querya_admin:${POSTGRES_PASSWORD}@postgres:5432/retail
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    environment:
+      QUERYA_DATABASE_URL: postgresql+psycopg://querya_ro:${QUERYA_RO_PASSWORD}@postgres:5432/retail
+      QUERYA_TRACE_DATABASE_URL: sqlite:////app/data/traces.db
+      QUERYA_LLM_PROVIDER: ${QUERYA_LLM_PROVIDER:-openai}
+      QUERYA_LLM_MODEL: ${QUERYA_LLM_MODEL:-}
+      QUERYA_OPENAI_BASE_URL: ${QUERYA_OPENAI_BASE_URL:-http://host.docker.internal:11434/v1}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      QUERYA_LANGFUSE_ENABLED: ${QUERYA_LANGFUSE_ENABLED:-false}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - traces:/app/data
+    ports:
+      - "8000:8000"
+    depends_on:
+      seed:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:
+  traces:
