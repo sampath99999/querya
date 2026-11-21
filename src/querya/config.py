@@ -26,9 +26,13 @@ class Settings(BaseSettings):
     llm_model: str | None = None
     llm_max_tokens: int = Field(default=4096, ge=256)
     llm_timeout_s: float = Field(default=120.0, gt=0)
+    llm_temperature: float = Field(default=0.0, ge=0.0, le=2.0)
     openai_base_url: str = "http://localhost:11434/v1"
     openai_api_key: SecretStr = SecretStr("ollama")
+    # Falls back to ANTHROPIC_API_KEY (read by the SDK) when unset.
     anthropic_api_key: SecretStr | None = None
+    anthropic_show_thinking: bool = True
+    glossary_path: Path | None = None
 
     max_rows: int = Field(default=200, ge=1, le=10_000)
     statement_timeout_ms: int = Field(default=5_000, ge=100)
