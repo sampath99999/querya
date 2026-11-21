@@ -1,0 +1,9 @@
+- The data covers orders placed from 2024-01-01 to 2025-12-31.
+- Revenue (also "sales") is SUM(order_items.quantity * order_items.unit_price * (1 - order_items.discount)). It does not include shipping_cost.
+- Unless the question says otherwise, revenue, order counts and averages only include orders whose status is not 'cancelled' and not 'returned'.
+- Order status values: 'delivered', 'shipped', 'processing', 'cancelled', 'returned'.
+- Channel values: 'web', 'mobile', 'store'. Segment values: 'Consumer', 'Small Business', 'Corporate'.
+- Gross profit is SUM(order_items.quantity * (order_items.unit_price * (1 - order_items.discount) - products.unit_cost)).
+- Average order value (AOV) is revenue divided by the number of distinct orders.
+- A customer's region comes from customers.region_id joined to regions.region_id.
+- payments.status is 'completed', 'refunded' or 'failed'. Collected cash means completed payments only.
