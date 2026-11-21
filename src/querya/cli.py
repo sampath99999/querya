@@ -2,8 +2,9 @@ import argparse
 import asyncio
 import logging
 import sys
+from pathlib import Path
 
-from querya.config import get_settings
+from querya.config import PROJECT_ROOT, get_settings
 from querya.logging_setup import configure_logging
 
 logger = logging.getLogger("querya")
@@ -58,6 +59,34 @@ def _cmd_ask(args: argparse.Namespace) -> None:
             _out(" | ".join(str(v) for v in row))
 
 
+def _cmd_eval(args: argparse.Namespace) -> None:
+    from querya.db import QueryRunner
+    from querya.evals import EvalRunner, load_cases, save_report
+    from querya.runtime import build_runtime
+
+    settings = get_settings()
+    cases = load_cases(Path(args.cases))
+    if args.only:
+        wanted = set(args.only.split(","))
+        cases = [c for c in cases if c.id in wanted]
+    if args.limit:
+        cases = cases[: args.limit]
+
+    runtime = build_runtime(settings)
+    reference = QueryRunner(runtime.engine, timeout_ms=30_000, max_rows=10_000)
+    try:
+        report = asyncio.run(
+            EvalRunner(runtime.agent, reference).run(
+                cases, provider=runtime.llm.provider, model=runtime.llm.model
+            )
+        )
+    finally:
+        runtime.close()
+    json_path, md_path = save_report(report, Path(args.out))
+    _out(report.to_markdown())
+    _out(f"saved {json_path} and {md_path}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="querya")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -77,6 +106,13 @@ def build_parser() -> argparse.ArgumentParser:
     ask = sub.add_parser("ask", help="Ask one question from the terminal")
     ask.add_argument("question")
     ask.set_defaults(func=_cmd_ask)
+
+    ev = sub.add_parser("eval", help="Run the eval set and report execution accuracy")
+    ev.add_argument("--cases", default=str(PROJECT_ROOT / "evals" / "questions.yaml"))
+    ev.add_argument("--out", default=str(PROJECT_ROOT / "evals" / "results"))
+    ev.add_argument("--only", help="Comma-separated case ids")
+    ev.add_argument("--limit", type=int)
+    ev.set_defaults(func=_cmd_eval)
     return parser
 
 

@@ -1,0 +1,242 @@
+# Each case has a reference query. The agent passes when its final result has the same
+# values as the reference result (column names and SQL text are not compared).
+# ordered: true means row order matters too.
+
+- id: orders_all_statuses
+  question: How many orders are in the database, counting every status?
+  sql: SELECT COUNT(*) FROM orders
+
+- id: customer_count
+  question: How many customers do we have?
+  sql: SELECT COUNT(*) FROM customers
+
+- id: orders_per_status
+  question: How many orders are there in each status?
+  sql: SELECT status, COUNT(*) FROM orders GROUP BY status
+
+- id: revenue_2025
+  question: What was total revenue in 2025?
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price * (1 - oi.discount))
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned') AND strftime('%Y', o.order_date) = '2025'
+
+- id: revenue_by_year
+  question: Show total revenue for each year.
+  ordered: false
+  sql: |
+    SELECT strftime('%Y', o.order_date) AS year,
+           SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) AS revenue
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY 1
+
+- id: monthly_revenue_2025
+  question: What was the revenue for each month of 2025, in month order?
+  ordered: true
+  sql: |
+    SELECT strftime('%Y-%m', o.order_date) AS month,
+           SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) AS revenue
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned') AND o.order_date >= '2025-01-01'
+    GROUP BY 1 ORDER BY 1
+
+- id: top5_products_revenue
+  question: What are the top 5 products by revenue?
+  ordered: true
+  sql: |
+    SELECT p.name, SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) AS revenue
+    FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY p.product_id, p.name ORDER BY revenue DESC LIMIT 5
+
+- id: revenue_by_category
+  question: Break down revenue by product category.
+  sql: |
+    SELECT p.category, SUM(oi.quantity * oi.unit_price * (1 - oi.discount))
+    FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY p.category
+
+- id: top_category_2024
+  question: Which product category had the highest revenue in 2024?
+  sql: |
+    SELECT p.category
+    FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned') AND strftime('%Y', o.order_date) = '2024'
+    GROUP BY p.category
+    ORDER BY SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) DESC LIMIT 1
+
+- id: orders_per_channel
+  question: How many orders came through each sales channel?
+  sql: |
+    SELECT channel, COUNT(*) FROM orders
+    WHERE status NOT IN ('cancelled', 'returned') GROUP BY channel
+
+- id: aov_2025
+  question: What was the average order value in 2025?
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) / COUNT(DISTINCT o.order_id)
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned') AND strftime('%Y', o.order_date) = '2025'
+
+- id: customers_per_region
+  question: How many customers are in each region?
+  sql: |
+    SELECT r.name, COUNT(*) FROM customers c JOIN regions r ON r.region_id = c.region_id
+    GROUP BY r.name
+
+- id: top_region_revenue
+  question: Which region generated the most revenue?
+  sql: |
+    SELECT r.name
+    FROM orders o
+    JOIN order_items oi ON oi.order_id = o.order_id
+    JOIN customers c ON c.customer_id = o.customer_id
+    JOIN regions r ON r.region_id = c.region_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY r.name
+    ORDER BY SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) DESC LIMIT 1
+
+- id: top_country_customers
+  question: Which country has the most customers?
+  sql: SELECT country FROM customers GROUP BY country ORDER BY COUNT(*) DESC LIMIT 1
+
+- id: completed_payments_by_method
+  question: How many completed payments were made with each payment method?
+  sql: SELECT method, COUNT(*) FROM payments WHERE status = 'completed' GROUP BY method
+
+- id: refunded_amount
+  question: What is the total amount of refunded payments?
+  sql: SELECT SUM(amount) FROM payments WHERE status = 'refunded'
+
+- id: failed_payments
+  question: How many payments failed?
+  sql: SELECT COUNT(*) FROM payments WHERE status = 'failed'
+
+- id: cancellation_rate
+  question: What percentage of all orders were cancelled?
+  sql: SELECT 100.0 * SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) / COUNT(*) FROM orders
+
+- id: black_friday_2025
+  question: How much revenue did we make during Black Friday week, November 24 to 30, 2025?
+  sql: |
+    SELECT SUM(oi.quantity * oi.unit_price * (1 - oi.discount))
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+      AND o.order_date BETWEEN '2025-11-24' AND '2025-11-30'
+
+- id: signups_2025
+  question: How many customers signed up in 2025?
+  sql: SELECT COUNT(*) FROM customers WHERE strftime('%Y', signup_date) = '2025'
+
+- id: avg_units_per_order
+  question: On average, how many units (total quantity) are in an order?
+  sql: |
+    SELECT AVG(units) FROM (
+      SELECT o.order_id, SUM(oi.quantity) AS units
+      FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+      WHERE o.status NOT IN ('cancelled', 'returned')
+      GROUP BY o.order_id
+    )
+
+- id: top5_customer_ids_spend
+  question: Which 5 customer IDs have the highest total spend?
+  ordered: true
+  sql: |
+    SELECT o.customer_id, SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) AS spend
+    FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY o.customer_id ORDER BY spend DESC LIMIT 5
+
+- id: gross_profit_by_category
+  question: What is the gross profit for each product category?
+  sql: |
+    SELECT p.category,
+           SUM(oi.quantity * (oi.unit_price * (1 - oi.discount) - p.unit_cost))
+    FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY p.category
+
+- id: most_units_product
+  question: Which product sold the most units?
+  sql: |
+    SELECT p.name FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned')
+    GROUP BY p.product_id, p.name ORDER BY SUM(oi.quantity) DESC LIMIT 1
+
+- id: orders_per_segment
+  question: How many orders did each customer segment place?
+  sql: |
+    SELECT c.segment, COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id
+    WHERE o.status NOT IN ('cancelled', 'returned') GROUP BY c.segment
+
+- id: mobile_share_2025
+  question: What percentage of 2025 orders came from the mobile channel?
+  sql: |
+    SELECT 100.0 * SUM(CASE WHEN channel = 'mobile' THEN 1 ELSE 0 END) / COUNT(*)
+    FROM orders
+    WHERE status NOT IN ('cancelled', 'returned') AND strftime('%Y', order_date) = '2025'
+
+- id: monthly_orders_2024
+  question: How many orders were placed in each month of 2024, in month order?
+  ordered: true
+  sql: |
+    SELECT strftime('%Y-%m', order_date), COUNT(*) FROM orders
+    WHERE status NOT IN ('cancelled', 'returned') AND strftime('%Y', order_date) = '2024'
+    GROUP BY 1 ORDER BY 1
+
+- id: electronics_subcategories
+  question: Show revenue by subcategory within Electronics.
+  sql: |
+    SELECT p.subcategory, SUM(oi.quantity * oi.unit_price * (1 - oi.discount))
+    FROM order_items oi
+    JOIN orders o ON o.order_id = oi.order_id
+    JOIN products p ON p.product_id = oi.product_id
+    WHERE o.status NOT IN ('cancelled', 'returned') AND p.category = 'Electronics'
+    GROUP BY p.subcategory
+
+- id: customers_without_orders
+  question: How many customers have never placed an order?
+  sql: |
+    SELECT COUNT(*) FROM customers
+    WHERE customer_id NOT IN (SELECT customer_id FROM orders)
+
+- id: avg_discount_when_discounted
+  question: What is the average discount rate on order items that had a discount?
+  sql: SELECT AVG(discount) FROM order_items WHERE discount > 0
+
+- id: busiest_day
+  question: Which single day had the most orders?
+  sql: |
+    SELECT order_date FROM orders WHERE status NOT IN ('cancelled', 'returned')
+    GROUP BY order_date ORDER BY COUNT(*) DESC LIMIT 1
+
+- id: revenue_growth_pct
+  question: By what percentage did revenue grow from 2024 to 2025?
+  sql: |
+    WITH yearly AS (
+      SELECT strftime('%Y', o.order_date) AS y,
+             SUM(oi.quantity * oi.unit_price * (1 - oi.discount)) AS revenue
+      FROM orders o JOIN order_items oi ON oi.order_id = o.order_id
+      WHERE o.status NOT IN ('cancelled', 'returned')
+      GROUP BY 1
+    )
+    SELECT 100.0 * (cur.revenue - prev.revenue) / prev.revenue
+    FROM yearly cur JOIN yearly prev ON prev.y = '2024' AND cur.y = '2025'
+
+- id: shipping_fees_2025
+  question: How much did customers pay in shipping fees in 2025?
+  sql: |
+    SELECT SUM(shipping_cost) FROM orders
+    WHERE status NOT IN ('cancelled', 'returned') AND strftime('%Y', order_date) = '2025'
