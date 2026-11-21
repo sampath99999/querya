@@ -50,9 +50,12 @@ function toolCalls(step: Step): string[] {
 }
 
 function tone(step: Step): string {
-  if (step.status === 'error') return 'bg-rose-50 text-rose-600 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:ring-rose-900'
-  if (step.kind === 'answer') return 'bg-brand-50 text-brand-700 ring-brand-200 dark:bg-brand-950 dark:text-brand-300 dark:ring-brand-800'
-  if (step.kind === 'llm') return 'bg-violet-50 text-violet-600 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-900'
+  if (step.status === 'error')
+    return 'bg-rose-50 text-rose-600 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-400 dark:ring-rose-900'
+  if (step.kind === 'answer')
+    return 'bg-brand-50 text-brand-700 ring-brand-200 dark:bg-brand-950 dark:text-brand-300 dark:ring-brand-800'
+  if (step.kind === 'llm')
+    return 'bg-violet-50 text-violet-600 ring-violet-200 dark:bg-violet-950/50 dark:text-violet-300 dark:ring-violet-900'
   return 'bg-white text-zinc-600 ring-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:ring-zinc-700'
 }
 
@@ -78,7 +81,11 @@ function StepDetail({ step }: { step: Step }) {
     )
   }
   if (step.kind === 'answer' || step.kind === 'error') {
-    return <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">{step.text ?? String(step.output ?? '')}</p>
+    return (
+      <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+        {step.text ?? String(step.output ?? '')}
+      </p>
+    )
   }
   return (
     <pre className="scrollbar-thin max-h-56 overflow-auto rounded-md bg-zinc-50 p-3 font-mono text-[11.5px] leading-relaxed whitespace-pre-wrap text-zinc-600 dark:bg-zinc-900 dark:text-zinc-400">

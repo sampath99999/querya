@@ -22,10 +22,7 @@ export function SqlBlock({ code, tone = 'default', className = '' }: Props) {
     window.setTimeout(() => setCopied(false), 1200)
   }
 
-  const border =
-    tone === 'error'
-      ? 'border-rose-200 dark:border-rose-900/60'
-      : 'border-zinc-200 dark:border-zinc-800'
+  const border = tone === 'error' ? 'border-rose-200 dark:border-rose-900/60' : 'border-zinc-200 dark:border-zinc-800'
 
   return (
     <div className={`group relative rounded-lg border bg-zinc-50/80 dark:bg-zinc-900/60 ${border} ${className}`}>

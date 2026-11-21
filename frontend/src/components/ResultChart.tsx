@@ -52,7 +52,16 @@ export function ResultChart({ spec }: { spec: ChartSpec }) {
           <LineChart data={spec.data} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
             {common}
             {spec.series.map((s, i) => (
-              <Line key={s} type="monotone" dataKey={s} stroke={COLORS[i]} strokeWidth={2.2} dot={{ r: 2.5 }} activeDot={{ r: 4 }} />
+              <Line
+                key={s}
+                type="monotone"
+                dataKey={s}
+                stroke={COLORS[i]}
+                strokeWidth={2.2}
+                dot={{ r: 2.5 }}
+                activeDot={{ r: 4 }}
+                isAnimationActive={false}
+              />
             ))}
           </LineChart>
         ) : (

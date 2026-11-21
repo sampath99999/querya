@@ -118,7 +118,9 @@ export function Sidebar({ view, onNavigate, onNewChat }: Props) {
             {offline ? (
               <p className="text-xs text-zinc-500">Schema unavailable.</p>
             ) : (
-              [0, 1, 2, 3, 4].map((i) => <div key={i} className="h-5 animate-pulse rounded bg-zinc-200/70 dark:bg-zinc-800" />)
+              [0, 1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-5 animate-pulse rounded bg-zinc-200/70 dark:bg-zinc-800" />
+              ))
             )}
           </div>
         )}
@@ -126,13 +128,18 @@ export function Sidebar({ view, onNavigate, onNewChat }: Props) {
 
       <div className="hidden border-t border-zinc-200 px-5 py-3 md:block dark:border-zinc-800">
         <div className="flex items-center gap-2 text-xs">
-          <span className={`size-2 rounded-full ${health ? 'bg-emerald-500' : offline ? 'bg-rose-500' : 'bg-zinc-300'}`} />
+          <span
+            className={`size-2 rounded-full ${health ? 'bg-emerald-500' : offline ? 'bg-rose-500' : 'bg-zinc-300'}`}
+          />
           <span className="font-medium text-zinc-700 dark:text-zinc-300">
             {health ? `${health.database} · ${health.tables} tables` : offline ? 'API offline' : 'Connecting…'}
           </span>
         </div>
         {health && (
-          <p className="mt-1 truncate pl-4 font-mono text-[11px] text-zinc-500" title={`${health.provider}/${health.model}`}>
+          <p
+            className="mt-1 truncate pl-4 font-mono text-[11px] text-zinc-500"
+            title={`${health.provider}/${health.model}`}
+          >
             {health.model}
           </p>
         )}

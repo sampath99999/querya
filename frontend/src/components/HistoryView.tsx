@@ -79,12 +79,14 @@ export function HistoryView({ selectedId, onSelect, refreshKey }: Props) {
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
       <section
-        className={`flex min-h-0 flex-col border-zinc-200 md:w-80 md:shrink-0 md:border-r lg:w-96 dark:border-zinc-800 ${selectedId ? 'hidden md:flex' : 'flex'}`}
+        className={`flex min-h-0 flex-col border-zinc-200 md:w-72 md:shrink-0 md:border-r dark:border-zinc-800 ${selectedId ? 'hidden md:flex' : 'flex'}`}
       >
         <header className="flex items-center justify-between px-5 pt-6 pb-3">
           <div>
             <h1 className="text-base font-semibold tracking-tight">History</h1>
-            <p className="text-xs text-zinc-500">{total} recorded {total === 1 ? 'run' : 'runs'}</p>
+            <p className="text-xs text-zinc-500">
+              {total} recorded {total === 1 ? 'run' : 'runs'}
+            </p>
           </div>
           <button
             type="button"
@@ -96,7 +98,11 @@ export function HistoryView({ selectedId, onSelect, refreshKey }: Props) {
           </button>
         </header>
         <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto px-3 pb-4">
-          {error && <p className="m-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{error}</p>}
+          {error && (
+            <p className="m-2 rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+              {error}
+            </p>
+          )}
           {runs === null && !error && (
             <div className="space-y-2 p-2">
               {[0, 1, 2, 3].map((i) => (
@@ -125,13 +131,15 @@ export function HistoryView({ selectedId, onSelect, refreshKey }: Props) {
                   <div className="flex items-start gap-2.5">
                     <span className={`mt-1.5 size-2 shrink-0 rounded-full ${dot[run.status]}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="line-clamp-2 text-[13px] font-medium text-zinc-800 dark:text-zinc-200">{run.question}</p>
-                      <p className="mt-1 flex gap-2 font-mono text-[11px] text-zinc-400 tabular-nums">
+                      <p className="line-clamp-2 text-[13px] font-medium text-zinc-800 dark:text-zinc-200">
+                        {run.question}
+                      </p>
+                      <p className="mt-1 flex gap-1.5 font-mono whitespace-nowrap text-[11px] text-zinc-400 tabular-nums">
                         <span>{timeAgo(run.created_at)}</span>
                         <span>·</span>
                         <span>{formatDuration(run.latency_ms)}</span>
                         <span>·</span>
-                        <span className="truncate">{run.model}</span>
+                        <span className="min-w-0 truncate">{run.model}</span>
                       </p>
                     </div>
                   </div>
@@ -152,7 +160,11 @@ export function HistoryView({ selectedId, onSelect, refreshKey }: Props) {
             >
               <ArrowLeft className="size-4" /> All runs
             </button>
-            {detailError && <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">{detailError}</p>}
+            {detailError && (
+              <p className="rounded-lg bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                {detailError}
+              </p>
+            )}
             {!detail && !detailError && <div className="h-40 animate-pulse rounded-xl bg-zinc-100 dark:bg-zinc-900" />}
             {detail && <RunView key={detail.id} run={toViewModel(detail)} />}
           </div>

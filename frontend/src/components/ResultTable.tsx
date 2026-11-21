@@ -30,7 +30,10 @@ export function ResultTable({ columns, rows }: Props) {
         </thead>
         <tbody>
           {rows.map((row, r) => (
-            <tr key={r} className="odd:bg-white even:bg-zinc-50/60 hover:bg-brand-50/60 dark:odd:bg-zinc-950 dark:even:bg-zinc-900/40 dark:hover:bg-brand-950/40">
+            <tr
+              key={r}
+              className="odd:bg-white even:bg-zinc-50/60 hover:bg-brand-50/60 dark:odd:bg-zinc-950 dark:even:bg-zinc-900/40 dark:hover:bg-brand-950/40"
+            >
               <td className="px-3 py-1.5 text-right font-mono text-[11px] text-zinc-400 tabular-nums">{r + 1}</td>
               {row.map((cell, c) => (
                 <td

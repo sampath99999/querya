@@ -75,48 +75,54 @@ export function RunView({ run }: { run: RunViewModel }) {
   const tokens = formatTokens(run.tokens)
 
   return (
-    <article className="grid animate-fade-in gap-5 lg:grid-cols-[minmax(0,1fr)_320px] xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="min-w-0 space-y-4">
-        <div className="flex items-start gap-3">
-          <div className="grid size-8 shrink-0 place-items-center rounded-full bg-zinc-900 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-            Q
+    <div className="@container">
+      <article className="grid animate-fade-in gap-5 @3xl:grid-cols-[minmax(0,1fr)_300px] @6xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0 space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="grid size-8 shrink-0 place-items-center rounded-full bg-zinc-900 text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
+              Q
+            </div>
+            <div className="min-w-0 pt-1">
+              <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                {run.question}
+              </h2>
+              {done && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {run.latencyMs !== null && (
+                    <Metric icon={<Clock className="size-3" />}>{formatDuration(run.latencyMs)}</Metric>
+                  )}
+                  <Metric icon={<Cpu className="size-3" />}>
+                    {run.llmCalls} model {run.llmCalls === 1 ? 'call' : 'calls'}
+                  </Metric>
+                  <Metric icon={<Hash className="size-3" />}>
+                    {run.sqlAttempts} SQL {run.sqlAttempts === 1 ? 'attempt' : 'attempts'}
+                  </Metric>
+                  {tokens && <Metric icon={<span className="font-mono text-[10px]">T</span>}>{tokens} tokens</Metric>}
+                  {run.model && <Metric icon={null}>{run.model}</Metric>}
+                </div>
+              )}
+            </div>
           </div>
-          <div className="min-w-0 pt-1">
-            <h2 className="text-[17px] font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">{run.question}</h2>
-            {done && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {run.latencyMs !== null && <Metric icon={<Clock className="size-3" />}>{formatDuration(run.latencyMs)}</Metric>}
-                <Metric icon={<Cpu className="size-3" />}>
-                  {run.llmCalls} model {run.llmCalls === 1 ? 'call' : 'calls'}
-                </Metric>
-                <Metric icon={<Hash className="size-3" />}>
-                  {run.sqlAttempts} SQL {run.sqlAttempts === 1 ? 'attempt' : 'attempts'}
-                </Metric>
-                {tokens && <Metric icon={<span className="font-mono text-[10px]">T</span>}>{tokens} tokens</Metric>}
-                {run.model && <Metric icon={null}>{run.model}</Metric>}
-              </div>
-            )}
-          </div>
+          <AnswerCard run={run} />
+          {hasResult && (
+            <ResultPanel
+              key={run.id}
+              columns={run.columns}
+              rows={run.rows}
+              truncated={run.truncated}
+              sql={run.sql}
+              filename={`querya-${run.id.slice(0, 8)}.csv`}
+            />
+          )}
         </div>
-        <AnswerCard run={run} />
-        {hasResult && (
-          <ResultPanel
-            key={run.id}
-            columns={run.columns}
-            rows={run.rows}
-            truncated={run.truncated}
-            sql={run.sql}
-            filename={`querya-${run.id.slice(0, 8)}.csv`}
-          />
-        )}
-      </div>
-      <aside className="min-w-0 lg:border-l lg:border-zinc-200 lg:pl-5 dark:lg:border-zinc-800">
-        <h3 className="mb-3 flex items-center justify-between text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
-          Trace
-          <span className="font-mono font-normal normal-case">{run.steps.length} steps</span>
-        </h3>
-        <StepTimeline steps={run.steps} running={!done} />
-      </aside>
-    </article>
+        <aside className="min-w-0 @3xl:border-l @3xl:border-zinc-200 @3xl:pl-5 dark:@3xl:border-zinc-800">
+          <h3 className="mb-3 flex items-center justify-between text-[11px] font-semibold tracking-wider text-zinc-500 uppercase">
+            Trace
+            <span className="font-mono font-normal normal-case">{run.steps.length} steps</span>
+          </h3>
+          <StepTimeline steps={run.steps} running={!done} />
+        </aside>
+      </article>
+    </div>
   )
 }
