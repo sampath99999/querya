@@ -127,4 +127,8 @@ class QueryRunner:
 
 def _is_timeout(message: str) -> bool:
     lowered = message.lower()
-    return "interrupted" in lowered or "statement timeout" in lowered or "canceling statement" in lowered
+    return (
+        "interrupted" in lowered
+        or "statement timeout" in lowered
+        or "canceling statement" in lowered
+    )

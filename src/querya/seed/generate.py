@@ -78,15 +78,27 @@ SEGMENTS = (("Consumer", 0.62), ("Small Business", 0.25), ("Corporate", 0.13))
 
 CATALOG: dict[str, dict[str, tuple[float, float, list[str]]]] = {
     "Electronics": {
-        "Headphones": (39, 349, ["Wireless Headphones", "Noise-Cancelling Earbuds", "Studio Headset"]),
+        "Headphones": (
+            39,
+            349,
+            ["Wireless Headphones", "Noise-Cancelling Earbuds", "Studio Headset"],
+        ),
         "Smartphones": (199, 1199, ["Smartphone", "Smartphone Pro", "Smartphone Mini"]),
         "Laptops": (549, 2399, ["Ultrabook", "Gaming Laptop", "Laptop 14", "Laptop 16"]),
         "Tablets": (149, 999, ["Tablet 10", "Tablet Pro 12", "E-Reader"]),
-        "Smart Home": (25, 249, ["Smart Speaker", "Smart Plug 4-Pack", "Video Doorbell", "Thermostat"]),
+        "Smart Home": (
+            25,
+            249,
+            ["Smart Speaker", "Smart Plug 4-Pack", "Video Doorbell", "Thermostat"],
+        ),
         "Cameras": (299, 1899, ["Mirrorless Camera", "Action Camera", "Instant Camera"]),
     },
     "Home & Kitchen": {
-        "Cookware": (19, 299, ["Cast Iron Skillet", "Nonstick Pan Set", "Dutch Oven", "Knife Block"]),
+        "Cookware": (
+            19,
+            299,
+            ["Cast Iron Skillet", "Nonstick Pan Set", "Dutch Oven", "Knife Block"],
+        ),
         "Small Appliances": (29, 499, ["Espresso Machine", "Air Fryer", "Blender", "Stand Mixer"]),
         "Bedding": (25, 249, ["Duvet Cover", "Memory Foam Pillow", "Linen Sheet Set"]),
         "Furniture": (89, 1299, ["Desk Chair", "Standing Desk", "Bookshelf", "Sofa Bed"]),
@@ -131,8 +143,20 @@ CATEGORY_SEASON: dict[str, dict[int, float]] = {
     "Clothing": {3: 1.2, 9: 1.3, 10: 1.3},
     "Beauty": {2: 1.3, 12: 1.4},
 }
-MONTH_SEASON = {1: 0.85, 2: 0.80, 3: 0.92, 4: 0.95, 5: 1.0, 6: 1.02, 7: 0.98, 8: 1.0,
-                9: 0.97, 10: 1.05, 11: 1.45, 12: 1.6}
+MONTH_SEASON = {
+    1: 0.85,
+    2: 0.80,
+    3: 0.92,
+    4: 0.95,
+    5: 1.0,
+    6: 1.02,
+    7: 0.98,
+    8: 1.0,
+    9: 0.97,
+    10: 1.05,
+    11: 1.45,
+    12: 1.6,
+}
 
 CHANNELS = ("web", "mobile", "store")
 PAYMENT_METHODS = ("card", "paypal", "bank_transfer", "gift_card", "cash_on_delivery")
@@ -255,9 +279,7 @@ def _order_status(rng: random.Random, day: date) -> str:
         return rng.choices(["processing", "shipped"], weights=[0.7, 0.3])[0]
     if age <= 10:
         return rng.choices(["shipped", "delivered", "cancelled"], weights=[0.6, 0.35, 0.05])[0]
-    return rng.choices(
-        ["delivered", "cancelled", "returned"], weights=[0.88, 0.06, 0.06]
-    )[0]
+    return rng.choices(["delivered", "cancelled", "returned"], weights=[0.88, 0.06, 0.06])[0]
 
 
 def _channel(rng: random.Random, day: date) -> str:
@@ -320,7 +342,11 @@ def generate(cfg: SeedConfig | None = None) -> Dataset:
                 if product["unit_price"] > 400:
                     quantity = 1
                 discount_rate = 0.35 if is_promo else 0.12
-                discount = rng.choice([0.05, 0.1, 0.15, 0.2, 0.25]) if rng.random() < discount_rate else 0.0
+                discount = (
+                    rng.choice([0.05, 0.1, 0.15, 0.2, 0.25])
+                    if rng.random() < discount_rate
+                    else 0.0
+                )
                 unit_price = _money(product["unit_price"] * price_bump)
                 subtotal += quantity * unit_price * (1 - discount)
                 data.order_items.append(
@@ -334,7 +360,9 @@ def generate(cfg: SeedConfig | None = None) -> Dataset:
                     }
                 )
 
-            shipping = 0.0 if channel == "store" or subtotal >= 75 else rng.choice([4.99, 7.99, 12.99])
+            shipping = (
+                0.0 if channel == "store" or subtotal >= 75 else rng.choice([4.99, 7.99, 12.99])
+            )
             data.orders.append(
                 {
                     "order_id": order_id,
@@ -345,7 +373,9 @@ def generate(cfg: SeedConfig | None = None) -> Dataset:
                     "shipping_cost": shipping,
                 }
             )
-            _add_payments(rng, data, order_id, day, status, customer["region_id"], subtotal + shipping)
+            _add_payments(
+                rng, data, order_id, day, status, customer["region_id"], subtotal + shipping
+            )
         day += timedelta(days=1)
     return data
 
